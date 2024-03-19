@@ -1,0 +1,561 @@
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+import sqlite3
+
+
+
+def create_recipe_table():
+    try:
+        conn = sqlite3.connect('recipes.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS recipes
+                     (name TEXT PRIMARY KEY,
+                     ingredients TEXT,
+                     instructions TEXT)''')
+        conn.commit()
+    except sqlite3.Error as e:
+        print("SQLite error while creating the recipe table:", e)
+    finally:
+        conn.close()
+# Function to create user table in SQLite database
+def create_user_table():
+    try:
+        conn = sqlite3.connect('recipes.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS users
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     first_name TEXT,
+                     last_name TEXT,
+                     mobile TEXT UNIQUE,
+                     email_id TEXT,
+                     password TEXT)''')
+        conn.commit()
+    except sqlite3.Error as e:
+        print("SQLite error while creating the user table:", e)
+    finally:
+        conn.close()
+
+# Function to insert user data into SQLite database
+def insert_user(first_name, last_name, mobile, email_id, password):
+    try:
+        conn = sqlite3.connect('recipes.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO users (first_name, last_name, mobile, email_id, password) VALUES (?, ?, ?, ?, ?)", (first_name, last_name, mobile, email_id, password))
+        conn.commit()
+        print("User registered successfully.")
+    except sqlite3.IntegrityError as e:
+        print("SQLite integrity error while inserting user:", e)
+        print("Failed to register user: Mobile number already exists.")
+    except sqlite3.Error as e:
+        print("SQLite error while inserting user:", e)
+    finally:
+        conn.close()
+
+# Function to register a user
+def register():
+    first_name = reg_first_name_entry.get()
+    last_name = reg_last_name_entry.get()
+    mobile = reg_mobile_entry.get()
+    email_id = reg_email_id_entry.get()
+    password = reg_password_entry.get()
+   
+    if not all([first_name, last_name, mobile, email_id, password]):
+        reg_error_label.config(text="Please fill in all fields.", fg="red")
+        return
+   
+    insert_user(first_name, last_name, mobile, email_id, password)
+    reg_error_label.config(text="Registration successful. You can now login.", fg="green")
+    registration_window.withdraw() # Hide registration window
+    login_window.deiconify() # Show login window
+
+# Function to display recipe details
+def display_recipe(recipe_name, ingredients, instructions):
+    recipe_window = tk.Toplevel(main_window)
+    recipe_window.title(recipe_name)
+   
+    ingredients_label = tk.Label(recipe_window, text="Ingredients:", font=("Arial", 20, "bold"))
+    ingredients_label.pack()
+   
+    ingredients_text = tk.Text(recipe_window, height=10, width=50, wrap="word")
+    ingredients_text.insert(tk.END, ingredients)
+    ingredients_text.pack()
+   
+    instructions_label = tk.Label(recipe_window, text="Instructions:", font=("Arial", 20, "bold"))
+    instructions_label.pack()
+   
+    instructions_text = tk.Text(recipe_window, height=10, width=50, wrap="word")
+    instructions_text.insert(tk.END, instructions)
+    instructions_text.pack()
+
+# Create user table
+create_user_table()
+
+# Function to handle user login
+def login():
+    username = username_entry.get()
+    password = password_entry.get()
+    if username == "priyanka" and password == "1234":
+        login_window.withdraw() # Hide login window
+        main_window.deiconify() # Show the main window
+    else:
+        error_label.config(text="Invalid username or password.")
+        registration_window.deiconify() # Optionally, show the registration window if login fails
+       
+       
+
+# Registration Window
+registration_window = tk.Tk()
+registration_window.title("Register ")
+registration_window.geometry("800x600")
+registration_window.attributes("-fullscreen", True) # Set feedback window to full screen
+
+# Add Register heading
+register_heading_label = tk.Label(registration_window, text="Registeration", font=("Arial", 26, "bold"),fg ="blue")
+register_heading_label.pack(pady=10)
+
+reg_first_name_label = tk.Label(registration_window, text="First Name:", font=("Arial", 25))
+reg_first_name_label.pack()
+
+reg_first_name_entry = tk.Entry(registration_window, font=("Arial", 20))
+reg_first_name_entry.pack()
+
+reg_last_name_label = tk.Label(registration_window, text="Last Name:", font=("Arial", 25))
+reg_last_name_label.pack()
+
+reg_last_name_entry = tk.Entry(registration_window, font=("Arial", 25))
+reg_last_name_entry.pack()
+
+reg_mobile_label = tk.Label(registration_window, text="Mobile Number:", font=("Arial", 25))
+reg_mobile_label.pack()
+
+reg_mobile_entry = tk.Entry(registration_window, font=("Arial", 25))
+reg_mobile_entry.pack()
+
+reg_email_id_label = tk.Label(registration_window, text="Email ID:", font=("Arial", 25))
+reg_email_id_label.pack()
+
+reg_email_id_entry = tk.Entry(registration_window, font=("Arial", 25))
+reg_email_id_entry.pack()
+
+reg_password_label = tk.Label(registration_window, text="Password:", font=("Arial", 25))
+reg_password_label.pack()
+
+reg_password_entry = tk.Entry(registration_window, show="*", font=("Arial", 25))
+reg_password_entry.pack()
+
+reg_error_label = tk.Label(registration_window, text="", font=("Arial", 25))
+reg_error_label.pack()
+
+reg_button = tk.Button(registration_window, text="Register", font=("Arial", 26, "bold"),fg ="green",command=register)
+reg_button.pack()
+
+# Login Window
+login_window = tk.Tk()
+login_window.title("Login")
+login_window.geometry("{0}x{1}+0+0".format(login_window.winfo_screenwidth(), login_window.winfo_screenheight()))
+# Initially hide the login window
+
+# Add Login heading
+login_heading_label = tk.Label(login_window, text="Login", font=("Arial", 27, "bold"))
+login_heading_label.pack(pady=10) # Adjust padding as needed
+
+username_label = tk.Label(login_window, text="Username:", font=("Arial", 30))
+username_label.pack()
+
+username_entry = tk.Entry(login_window, font=("Arial", 30))
+username_entry.pack()
+
+password_label = tk.Label(login_window, text="Password:", font=("Arial", 30))
+password_label.pack()
+
+password_entry = tk.Entry(login_window, show="*", font=("Arial", 30))
+password_entry.pack()
+
+error_label = tk.Label(login_window, text="", font=("Arial", 15), fg="red")
+error_label.pack()
+
+login_button = tk.Button(login_window, text="Login", font=("Arial", 30),fg="red",command=login)
+login_button.pack()
+
+# Main Window
+main_window = tk.Tk()
+main_window.title("main_window")
+main_window.geometry("{0}x{1}+0+0".format(login_window.winfo_screenwidth(), main_window.winfo_screenheight()))
+main_window.configure(bg="pink")  # Set background color
+
+# Initially hide the login window
+
+
+
+main_window.geometry("800x600")
+main_window.attributes("-fullscreen", True) # Set feedback window to full screen
+main_window.withdraw() # Initially hide the main window
+
+# sample data structure to store recipes
+recipes = {}
+
+# Function to display recipe details
+def display_recipe_details(recipe_name):
+    recipe_window = tk.Toplevel(main_window)
+    recipe_window.title(recipe_name)
+   
+    ingredients_label = tk.Label(recipe_window, text="Ingredients:", font=("Arial", 20, "bold"))
+    ingredients_label.pack()
+   
+    ingredients_text = tk.Text(recipe_window, height=10, width=50, wrap="word")
+    ingredients_text.insert(tk.END, recipes[recipe_name]["ingredients"])
+    ingredients_text.pack()
+   
+    instructions_label = tk.Label(recipe_window, text="Instructions:", font=("Arial", 20, "bold"))
+    instructions_label.pack()
+   
+    instructions_text = tk.Text(recipe_window, height=10, width=50, wrap="word")
+    instructions_text.insert(tk.END, recipes[recipe_name]["instructions"])
+    instructions_text.pack()
+
+# Function to add recipe
+def add_recipe():
+    add_recipe_window = tk.Toplevel(main_window)
+    add_recipe_window.title("Add Recipe")
+
+    def save_recipe():
+        recipe_name = recipe_name_entry.get()
+        ingredients = ingredients_text.get("1.0", tk.END)
+        instructions = instructions_text.get("1.0", tk.END)
+        recipes[recipe_name] = {"ingredients": ingredients, "instructions": instructions}
+        recipe_name_entry.delete(0, tk.END)
+        ingredients_text.delete("1.0", tk.END)
+        instructions_text.delete("1.0", tk.END)
+
+    recipe_name_label = tk.Label(add_recipe_window, text="Recipe Name:", font=("Arial", 20))
+    recipe_name_label.pack()
+
+    recipe_name_entry = tk.Entry(add_recipe_window, font=("Arial", 20))
+    recipe_name_entry.pack()
+
+    ingredients_label = tk.Label(add_recipe_window, text="Ingredients:", font=("Arial", 20))
+    ingredients_label.pack()
+
+    ingredients_text = tk.Text(add_recipe_window, height=10, width=50, wrap="word")
+    ingredients_text.pack()
+
+    instructions_label = tk.Label(add_recipe_window, text="Instructions:", font=("Arial", 20))
+    instructions_label.pack()
+
+    instructions_text = tk.Text(add_recipe_window, height=10, width=50, wrap="word")
+    instructions_text.pack()
+
+    save_button = tk.Button(add_recipe_window, text="Save Recipe", font=("Arial", 20), command=save_recipe)
+    save_button.pack()
+
+# Function to update recipe
+def update_recipe():
+    update_recipe_window = tk.Toplevel(main_window)
+    update_recipe_window.title("Update Recipe")
+
+    def save_updated_recipe():
+        recipe_name = recipe_name_entry.get()
+        updated_ingredients = updated_ingredients_text.get("1.0", tk.END)
+        updated_instructions = updated_instructions_text.get("1.0", tk.END)
+        recipes[recipe_name] = {"ingredients": updated_ingredients, "instructions": updated_instructions}
+        update_recipe_window.destroy()
+
+    recipe_name_label = tk.Label(update_recipe_window, text="Recipe Name:", font=("Arial", 20))
+    recipe_name_label.pack()
+
+    recipe_name_entry = tk.Entry(update_recipe_window, font=("Arial", 20))
+    recipe_name_entry.pack()
+
+    updated_ingredients_label = tk.Label(update_recipe_window, text="Updated Ingredients:", font=("Arial", 20))
+    updated_ingredients_label.pack()
+
+    updated_ingredients_text = tk.Text(update_recipe_window, height=10, width=50, wrap="word")
+    updated_ingredients_text.pack()
+
+    updated_instructions_label = tk.Label(update_recipe_window, text="Updated Instructions:", font=("Arial", 20))
+    updated_instructions_label.pack()
+
+    updated_instructions_text = tk.Text(update_recipe_window, height=10, width=50, wrap="word")
+    updated_instructions_text.pack()
+
+    save_button = tk.Button(update_recipe_window, text="Save", font=("Arial", 20), command=save_updated_recipe)
+    save_button.pack()
+
+# Function to delete recipe
+def delete_recipe():
+    delete_recipe_window = tk.Toplevel(main_window)
+    delete_recipe_window.title("Delete Recipe")
+
+    def confirm_delete_recipe():
+        recipe_name = recipe_name_entry.get()
+        if recipe_name in recipes:
+            del recipes[recipe_name]
+            print(f"Recipe '{recipe_name}' deleted successfully.")
+        delete_recipe_window.destroy()
+
+    recipe_name_label = tk.Label(delete_recipe_window, text="Recipe Name:", font=("Arial", 20))
+    recipe_name_label.pack()
+
+    recipe_name_entry = tk.Entry(delete_recipe_window, font=("Arial", 20))
+    recipe_name_entry.pack()
+
+    delete_button = tk.Button(delete_recipe_window, text="Delete", font=("Arial", 20), command=confirm_delete_recipe)
+    delete_button.pack()
+
+# Function to display all recipes
+def show_recipes():
+    show_recipes_window = tk.Toplevel(main_window)
+    show_recipes_window.title("All Recipes")
+
+    for recipe_name in recipes:
+        recipe_button = tk.Button(show_recipes_window, text=recipe_name, font=("Arial", 16), command=lambda name=recipe_name: display_recipe_details(name))
+        recipe_button.pack()
+
+# Main window
+main_window = tk.Tk()
+main_window.title("Recipe Book")
+
+# Buttons for Add, Update, Delete, and Show Recipes
+add_recipe_button = tk.Button(main_window, text="Add Recipe", font=("Arial", 20), command=add_recipe)
+add_recipe_button.pack()
+
+update_recipe_button = tk.Button(main_window, text="Update Recipe", font=("Arial", 20), command=update_recipe)
+update_recipe_button.pack()
+
+delete_recipe_button = tk.Button(main_window, text="Delete Recipe", font=("Arial", 20), command=delete_recipe)
+delete_recipe_button.pack()
+
+show_recipes_button = tk.Button(main_window, text="Show Recipes", font=("Arial", 20), command=show_recipes)
+show_recipes_button.pack()
+
+
+# Add Menu
+menu_bar = tk.Menu(main_window)
+main_window.config(menu=menu_bar)
+
+file_menu = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Menu", menu=file_menu,font=("Arial", 25))
+file_menu.add_command(label="Register", font=("Arial", 18), command=lambda: registration_window.deiconify())
+file_menu.add_command(label="Login",font=("Arial", 18), command=lambda: login_window.deiconify())
+file_menu.add_command(label="Main Window", font=("Arial", 18),command=lambda: main_window.deiconify())
+file_menu.add_command(label="feedback from", font=("Arial", 18),command=lambda: feedback_from.deiconify())
+
+
+
+# Add the "Veg" heading
+veg_heading_label = tk.Label(main_window, text="Veg", font=("Arial", 20, "bold"))
+veg_heading_label.pack()
+
+# Vegetable Buttons
+veg_buttons_frame = tk.Frame(main_window)
+veg_buttons_frame.pack()
+
+veg_button_texts = ["Pav Bhaji", "Puran Poli", "Paneer Tikka", "Vadapav", "Misal"]
+veg_recipes = [
+    ("Pav Bhaji",
+     "2 potatoes\n2 tomatoes\n1 capsicum\n1 onion\n1/2 cup peas\n2 tbsp pav bhaji masala\nSalt to taste\nButter\nCoriander leaves",
+     "1. Boil and peel the potatoes. Mash them.\n2. Heat butter in a pan. Add chopped onions and sauté until golden brown.\n3. Add chopped tomatoes and cook until soft.\n4. Add chopped capsicum, peas, mashed potatoes, pav bhaji masala, and salt. Mix well.\n5. Cook for 10-15 minutes until the flavors blend.\n6. Garnish with chopped coriander leaves.\n7. Serve hot with buttered pav."),
+    ("Puran Poli",
+     "1 cup chana dal\n1 cup jaggery\n1 cup whole wheat flour\n1/2 tsp cardamom powder\nGhee",
+     "1. Wash and pressure cook chana dal until soft.\n2. Drain excess water and mash the dal.\n3. Add jaggery and cook until it melts and blends with the dal.\n4. Prepare a dough with whole wheat flour and water.\n5. Make small balls of the dough and roll them out into small discs.\n6. Place a portion of the dal-jaggery mixture in the center of each disc and seal the edges.\n7. Roll out each stuffed disc into a thin circle.\n8. Heat a griddle and cook the puran poli on both sides using ghee until golden brown."),
+    ("Paneer Tikka",
+     "200g paneer\n1 capsicum\n1 onion\n1 tomato\n1/2 cup yogurt\n1 tsp ginger-garlic paste\n1 tsp red chili powder\n1 tsp turmeric powder\n1 tsp garam masala\nSalt to taste",
+     "1. Cut paneer, capsicum, onion, and tomato into cubes.\n2. Mix yogurt, ginger-garlic paste, red chili powder, turmeric powder, garam masala, and salt in a bowl.\n3. Add paneer and vegetables to the marinade and let it sit for 30 minutes.\n4. Skewer the marinated paneer and vegetables.\n5. Grill or bake in a preheated oven until charred on the edges."),
+    ("Vadapav",
+     "4 pav buns\n4 boiled potatoes\n1/2 cup gram flour\n1 tsp red chili powder\n1 tsp turmeric powder\n1 tsp mustard seeds\nSalt to taste\nOil",
+     "1. Mash boiled potatoes and add salt.\n2. Heat oil in a pan, add mustard seeds, and let them splutter.\n3. Add turmeric powder, red chili powder, and gram flour to make a thick paste.\n4. Cut pav buns into halves and apply the gram flour paste on the inner sides.\n5. Place a portion of mashed potatoes between the buns.\n6. Heat a pan and toast the vadapav until crispy and golden brown."),
+    ("Misal",
+     "1 cup sprouted moth beans\n1 onion\n1 tomato\n1/2 cup farsan\n2 tbsp misal masala\n1 tsp mustard seeds\n1 tsp cumin seeds\n1 tsp turmeric powder\n1 tsp red chili powder\nSalt to taste",
+     "1. Heat oil in a pan and add mustard seeds and cumin seeds.\n2. Add chopped onions and sauté until golden brown.\n3. Add chopped tomatoes and cook until soft.\n4. Add sprouted moth beans, misal masala, turmeric powder, red chili powder, and salt.\n5. Cook for 10-15 minutes until the beans are tender.\n6. Garnish with farsan and serve hot."),
+]
+
+# Define row and column variables for grid layout
+row_num = 0
+column_num = 0
+
+for text, recipe in zip(veg_button_texts, veg_recipes):
+    button = tk.Button(veg_buttons_frame, text=text, font=("Arial", 20), command=lambda recipe=recipe: display_recipe(*recipe), bg="green")
+    button.grid(row=row_num, column=column_num, padx=7, pady=7)
+    
+    # Update row and column numbers
+    row_num += 2
+    if row_num > 2:
+        row_num = 0
+        column_num += 1
+
+# Add the " non Veg" heading
+non_veg_heading_label = tk.Label(main_window, text="non_Veg", font=("Arial", 20, "bold"))
+non_veg_heading_label.pack()
+
+
+# Non-Vegetarian Buttons
+non_veg_buttons_frame = tk.Frame(main_window)
+non_veg_buttons_frame.pack()
+
+non_veg_button_texts = ["Biryani", "Chicken", "Fish", "Mutton Curry", "Egg Bhurgi"]
+
+non_veg_recipes = [
+    ("Biryani",
+     "2 cups basmati rice\n500g chicken\n1 onion\n1 tomato\n1/2 cup yogurt\n2 tbsp biryani masala\n1 tsp ginger-garlic paste\n1 tsp turmeric powder\n1 tsp red chili powder\nSalt to taste",
+     "1. Soak basmati rice in water for 30 minutes.\n2. Heat oil in a pressure cooker, add sliced onions, and sauté until golden brown.\n3. Add ginger-garlic paste and sauté until the raw smell disappears.\n4. Add chopped tomatoes and cook until mushy.\n5. Add chicken pieces, biryani masala, turmeric powder, red chili powder, and salt.\n6. Cook until the chicken is half done.\n7. Add soaked rice and water, and pressure cook until rice is cooked and chicken is tender.\n8. Serve hot with raita."),
+    ("Chicken",
+     "500g chicken\n2 onions\n2 tomatoes\n1/2 cup yogurt\n2 tbsp ginger-garlic paste\n1 tsp turmeric powder\n1 tsp red chili powder\n1 tsp garam masala\nSalt to taste",
+     "1. Marinate chicken with yogurt, ginger-garlic paste, turmeric powder, red chili powder, garam masala, and salt.\n2. Heat oil in a pan, add sliced onions, and sauté until golden brown.\n3. Add chopped tomatoes and cook until soft.\n4. Add marinated chicken and cook until tender and the gravy thickens.\n5. Garnish with coriander leaves and serve hot."),
+    ("Fish",
+     "500g fish fillets\n1 onion\n1 tomato\n1/2 cup coconut milk\n2 tbsp fish masala\n1 tsp turmeric powder\n1 tsp red chili powder\n1 tsp mustard seeds\nSalt to taste",
+     "1. Marinate fish fillets with turmeric powder, red chili powder, and salt.\n2. Heat oil in a pan, add mustard seeds, and let them splutter.\n3. Add sliced onions and sauté until golden brown.\n4. Add chopped tomatoes and cook until soft.\n5. Add fish masala and coconut milk, and bring to a simmer.\n6. Add marinated fish fillets and cook until fish is done.\n7. Serve hot with rice or bread."),
+    # Mutton Curry Recipe
+("Mutton Curry",
+ "500g mutton\n2 onions\n2 tomatoes\n1/2 cup yogurt\n2 tbsp ginger-garlic paste\n2 tbsp coriander powder\n1 tsp turmeric powder\n1 tsp red chili powder\nSalt to taste",
+ "1. Marinate mutton with yogurt, ginger-garlic paste, coriander powder, turmeric powder, red chili powder, and salt.\n2. Heat oil in a pressure cooker, add sliced onions, and sauté until golden brown.\n3. Add chopped tomatoes and cook until mushy.\n4. Add marinated mutton and cook until tender.\n5. Serve hot with rice or bread."),
+
+# Egg Bhurgi Recipe
+("Egg Bhurgi",
+ "6 eggs\n2 onions\n2 tomatoes\n2 green chilies\n1/2 cup coriander leaves\n1 tsp turmeric powder\n1 tsp red chili powder\n1 tsp cumin seeds\nSalt to taste",
+ "1. Boil eggs, remove shells, and cut into halves.\n2. Heat oil in a pan, add cumin seeds, and let them splutter.\n3. Add sliced onions and sauté until golden brown.\n4. Add chopped tomatoes, green chilies, turmeric powder, red chili powder, and salt.\n5. Cook until tomatoes are soft and mushy.\n6. Add boiled eggs and mix well.\n7. Garnish with chopped coriander leaves and serve hot."),
+ ]
+ 
+ # Define row and column variables for grid layout
+row_num = 0
+column_num = 0
+
+for text, recipe in zip(non_veg_button_texts, non_veg_recipes):
+    button = tk.Button(non_veg_buttons_frame, text=text, font=("Arial", 20), command=lambda recipe=recipe: display_recipe(*recipe), bg="orange")
+    button.grid(row=row_num, column=column_num, padx=7, pady=7)
+    
+    # Update row and column numbers
+    row_num += 1
+    if row_num > 2:
+        row_num = 0
+        column_num += 1
+        
+ # Add the "Beverage" heading
+beverage_heading_label = tk.Label(main_window, text="Beverage", font=("Arial", 20, "bold"))
+beverage_heading_label.pack()
+
+# Beverage Buttons
+beverage_buttons_frame = tk.Frame(main_window)
+beverage_buttons_frame.pack()
+
+beverage_button_texts = ["Mango Lassi", "Tea", "Coffee", "Ice Cream", "Kokam"]
+beverage_recipes = [
+    ("Mango Lassi",
+     "1 cup ripe mango\n1/2 cup yogurt\n1/2 cup milk\n2 tbsp sugar\n1/4 tsp cardamom powder\nIce cubes",
+     "1. Peel and chop ripe mangoes.\n2. Blend mangoes, yogurt, milk, sugar, and cardamom powder until smooth.\n3. Add ice cubes and blend again until frothy.\n4. Serve chilled."),
+    ("Tea",
+     "1 cup water\n1 tbsp tea leaves\n2 tbsp milk\n2 tsp sugar",
+     "1. Boil water in a saucepan.\n2. Add tea leaves and let it simmer for 2 minutes.\n3. Add milk and sugar, and simmer for another 2 minutes.\n4. Strain and serve hot."),
+    ("Coffee",
+     "1 cup water\n2 tbsp coffee powder\n2 tbsp sugar\n2 tbsp milk",
+     "1. Boil water in a saucepan.\n2. Add coffee powder and sugar, and simmer for 2 minutes.\n3. Add milk and simmer for another 2 minutes.\n4. Strain and serve hot."),
+    ("Ice Cream",
+     "2 cups heavy cream\n1 can condensed milk\n1 tsp vanilla extract\nToppings of your choice (chocolate chips, nuts, fruits)",
+     "1. Whip heavy cream until stiff peaks form.\n2. Fold in condensed milk and vanilla extract gently until well combined.\n3. Pour mixture into a container and freeze for 6-8 hours or until set.\n4. Serve scoops of ice cream topped with your favorite toppings."),
+    ("Kokam",
+     "10-12 kokam petals\n2 cups water\n1/4 cup sugar\nSalt to taste\nIce cubes",
+     "1. Soak kokam petals in water for 2-3 hours.\n2. Strain the kokam water into a pitcher.\n3. Add sugar and salt to the kokam water and stir until dissolved.\n4. Add ice cubes and serve chilled."),
+]
+
+# Define row and column variables for grid layout
+row_num = 0
+column_num = 0
+
+for text, recipe in zip(beverage_button_texts, beverage_recipes):
+    button = tk.Button(beverage_buttons_frame, text=text, font=("Arial", 20), command=lambda recipe=recipe: display_recipe(*recipe), bg="yellow") 
+    button.grid(row=row_num, column=column_num, padx=7,pady=7)
+    
+    # Update row and column numbers
+    row_num += 2
+    if row_num > 2:
+        row_num = 0
+        column_num += 1
+        
+        # Function to handle "Next" button click
+def next_button_clicked():
+    # Create a new window for feedback
+    feedback_window = tk.Toplevel(main_window)
+    feedback_window.title("Feedback Form")
+    feedback_window.geometry("400x400")
+    feedback_window.attributes("-fullscreen", True) # Set feedback window to full screen
+
+    # Feedback Form Heading
+    feedback_heading = tk.Label(feedback_window, text="Recipe Feedback Form", font=("Arial", 16, "bold"))
+    feedback_heading.pack(pady=(10, 5))
+    
+    # Name
+    tk.Label(feedback_window, text="Name:", font=("Arial", 14)).pack()
+    name_entry = tk.Entry(feedback_window, width=30, font=("Arial", 12))
+    name_entry.pack(pady=5)
+
+    # Email
+    tk.Label(feedback_window, text="Email:", font=("Arial", 14)).pack()
+    email_entry = tk.Entry(feedback_window, width=30, font=("Arial", 12))
+    email_entry.pack(pady=5)
+
+    # Phone No
+    tk.Label(feedback_window, text="Phone No:", font=("Arial", 14)).pack()
+    phone_entry = tk.Entry(feedback_window, width=30, font=("Arial", 12))
+    phone_entry.pack(pady=5)
+
+    # Overall Rating
+    tk.Label(feedback_window, text="Overall Rating:", font=("Arial", 14)).pack()
+    overall_rating_combobox = ttk.Combobox(feedback_window, values=["1", "2", "3", "4", "5"], width=28, font=("Arial", 12))
+    overall_rating_combobox.pack(pady=5)
+
+    # Easy to Follow
+    tk.Label(feedback_window, text="Easy to Follow:", font=("Arial", 14)).pack()
+    easy_following_combobox = ttk.Combobox(feedback_window, values=["Yes", "No"], width=28, font=("Arial", 12))
+    easy_following_combobox.pack(pady=5)
+
+    # Clear Instructions
+    tk.Label(feedback_window, text="Clear Instructions:", font=("Arial", 14)).pack()
+    clear_instructions_combobox = ttk.Combobox(feedback_window, values=["Yes", "No"], width=28, font=("Arial", 12))
+    clear_instructions_combobox.pack(pady=5)
+
+    # Taste Rating
+    tk.Label(feedback_window, text="Taste Rating:", font=("Arial", 14)).pack()
+    taste_rating_combobox = ttk.Combobox(feedback_window, values=["1", "2", "3", "4", "5"], width=28, font=("Arial", 12))
+    taste_rating_combobox.pack(pady=5)
+
+    # Comments
+    tk.Label(feedback_window, text="Comments:", font=("Arial", 14)).pack()
+    comments_text = tk.Text(feedback_window, height=5, width=40, font=("Arial", 12))
+    comments_text.pack(pady=5)
+
+    # Submit Button Function
+    def submit_feedback():
+        feedback_data = {
+            "Name": name_entry.get(),
+            "Email": email_entry.get(),
+            "Phone No": phone_entry.get(),
+            "Overall Rating": overall_rating_combobox.get(),
+            "Easy to Follow": easy_following_combobox.get(),
+            "Clear Instructions": clear_instructions_combobox.get(),
+            "Taste Rating": taste_rating_combobox.get(),
+            "Comments": comments_text.get("1.0", tk.END).strip()
+        }
+        # Process the feedback_data here (e.g., save to file, send to server, etc.)
+        messagebox.showinfo("Feedback Received", "Thank you for your feedback!")
+        feedback_window.destroy() # Close the feedback window
+
+    # Submit Button
+    submit_button = tk.Button(feedback_window, text="Submit", command=submit_feedback, font=("Arial", 14))
+    submit_button.pack(pady=10)
+
+    # Function to handle closing the feedback window
+    def close_feedback_window():
+        feedback_window.destroy()
+
+    # Cancel Button
+    cancel_button = tk.Button(feedback_window, text="Cancel", command=close_feedback_window, font=("Arial", 14))
+    cancel_button.pack(pady=5)
+        
+# Add the "Next" button at the end of the beverage recipe section
+next_button = tk.Button(main_window, text="Next ➡", font=("Arial", 20), command=next_button_clicked, bg="pink")
+next_button.place(x=100, y=10)
+        
+
+
+# Main window loop
+main_window.mainloop()
